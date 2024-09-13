@@ -1,62 +1,32 @@
-import { useState } from 'react';
 import './App.css';
-import { UploadFiles } from './UploadFiles';
-import { FileCard } from './FileCard';
+import { AppSelector } from './AppSelector';
+import IntentApp from './IntentApp';
+import React from 'react';
 
 const App = () => {
 
-  const [inputFile, setInputFile] = useState<string>();
-  const [outputFile, setOutputFile] = useState<string>();
-  const [labelFile, setLabelFile] = useState<string>();
+  const [app, setApp] = React.useState<string>('intent');
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
+  React.useEffect(() => {
+    const cachedApp = localStorage.getItem('app') ?? 'intent';
 
-    if (files === null) return;
+    if (cachedApp !== app) {
+      setApp(cachedApp);
+    }
+  }, []);
 
-    Array.from(files).map((f) => {
-      console.log(f);
-      if (f.name === 'seq.in') {
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const content = e.target?.result as string;
-          content && setInputFile(content);
-        };
-
-        reader.readAsText(f);
-      } else if (f.name === 'seq.out') {
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const content = e.target?.result as string;
-          content && setOutputFile(content);
-        };
-
-        reader.readAsText(f);
-      } else if (f.name === 'label') {
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const content = e.target?.result as string;
-          content && setLabelFile(content);
-        };
-
-        reader.readAsText(f);
-      }
-      else {
-        console.error("unsupported file: ", f.name);
-      }
-    });
+  const handleAppClick = (app: string) => {
+    localStorage.setItem("app", app);
+    setApp(app);
   };
 
   return (
-    <>
-      <UploadFiles handleFileUpload={handleFileUpload} />
-
-      <FileCard inputFile={inputFile} labelFile={labelFile} outputFile={outputFile} />
-    </>
+    <div>
+      <AppSelector selected={app} onAppSelect={handleAppClick} />
+      {(app === "intent") && <IntentApp />}
+    </div>
   );
+
 };
 
 

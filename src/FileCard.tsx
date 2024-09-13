@@ -5,7 +5,7 @@ import { FileCardLine } from "./FileCardLine";
 
 export const FileCard: React.FC<{ inputFile?: string, labelFile?: string; outputFile?: string; }> = ({ inputFile, labelFile, outputFile }) => {
   const [labels, setLabels] = React.useState<string[]>([]);
-  const [uniqueLabels, setUniqueLabels] = React.useState<string[]>([]);
+  const [uniqueLabels, setUniqueLabels] = React.useState<{ l: string, c: number; }[]>();
   const [inputs, setInputs] = React.useState<string[]>([]);
   const [outputs, setOutputs] = React.useState<string[]>([]);
 
@@ -16,12 +16,24 @@ export const FileCard: React.FC<{ inputFile?: string, labelFile?: string; output
   React.useEffect(() => {
     if (labelFile) {
       setLabels(labelFile.split(/\r\n|\n/));
-      setUniqueLabels([...new Set(labelFile.split(/\r\n|\n/))]);
     }
   }, [labelFile]);
 
   React.useEffect(() => {
-    setLabel(uniqueLabels[0]);
+    const initValue: { l: string, c: number; }[] = [];
+    const groupedLabels = labels.reduce((acc, item) => {
+      const l = acc.find((x) => x.l === item);
+      if (l) {
+        l.c = l.c + 1;
+      } else {
+        const n = { l: item, c: 1 };
+        acc.push(n);
+      }
+
+      return acc;
+    }, initValue);
+    setUniqueLabels(groupedLabels);
+    setLabel(Object.keys(groupedLabels)[0]);
   }, [labels]);
 
   React.useEffect(() => {
