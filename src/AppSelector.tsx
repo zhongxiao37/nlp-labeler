@@ -7,8 +7,6 @@ export interface IAppSelectorProps {
 }
 
 export const AppSelector: React.FC<IAppSelectorProps> = ({ selected, onAppSelect }) => {
-  const label = selected === 'intent' ? 'Intent' : 'NSP';
-
 
   return (
     <div>
