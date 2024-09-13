@@ -21,7 +21,7 @@ const App = () => {
   };
 
   return (
-    <div>
+    <div className='mx-auto text-center h-full overflow-scroll'>
       <AppSelector selected={app} onAppSelect={handleAppClick} />
       {(app === "intent") && <IntentApp />}
     </div>

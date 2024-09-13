@@ -1,4 +1,4 @@
-import { Chip } from "@mui/material";
+import { Button } from "@mui/material";
 
 
 export interface IAppSelectorProps {
@@ -10,22 +10,20 @@ export const AppSelector: React.FC<IAppSelectorProps> = ({ selected, onAppSelect
 
   return (
     <div>
-      <Chip
-        color="primary"
-        className="!p-1 !m-1"
-        variant={selected === 'intent' ? "filled" : "outlined"}
+      <Button
+        component="div"
+        className="!m-2"
+        variant={selected === 'intent' ? "contained" : "outlined"}
         key='intent'
-        label='Intent'
         onClick={() => onAppSelect("intent")}
-      />
-      <Chip
-        color="primary"
-        className="!p-1 !m-1"
-        variant={selected === 'nsp' ? "filled" : "outlined"}
+      >Intent</Button>
+      <Button
+        component="div"
+        className="!m-2"
+        variant={selected === 'nsp' ? "contained" : "outlined"}
         key='nsp'
-        label='NSP'
         onClick={() => onAppSelect("nsp")}
-      />
+      >NSP</Button>
     </div>
   );
 };

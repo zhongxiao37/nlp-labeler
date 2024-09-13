@@ -51,7 +51,7 @@ const IntentApp = () => {
   };
 
   return (
-    <>
+    <div>
       {(labelFile === undefined) &&
         <div className='h-full flex flex-col justify-center'>
           <Typography variant='h5' >Upload your data files</Typography>
@@ -69,7 +69,7 @@ const IntentApp = () => {
 
 
       <FileCard inputFile={inputFile} labelFile={labelFile} outputFile={outputFile} />
-    </>
+    </div>
   );
 };
 
