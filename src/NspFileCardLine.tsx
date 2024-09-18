@@ -126,9 +126,6 @@ export const NspFileCardLine: React.FC<INspFileCardLineProps> = ({ inputs, label
   const [saving, setSaving] = React.useState<boolean>(false);
   const [message, setMessage] = React.useState<string>("");
 
-  console.log('labels', labels);
-  console.log('slots', slots);
-
   const copyWords = async (inputIdx: number) => {
     setMessage("Copying");
     setSaving(true);

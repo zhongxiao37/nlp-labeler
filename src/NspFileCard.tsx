@@ -65,8 +65,16 @@ export const NspFileCard: React.FC<INspFileCardProps> = ({ questionFile, answerF
     setInputs(inputs_);
   }, [questions, answers]);
 
+  React.useEffect(() => {
+    const initialPage = 1;
+    setPage(initialPage);
+    setFilteredInputs(inputs.slice(0, PAGE_SIZE));
+    setFilteredLabels(labels.slice(0, PAGE_SIZE));
+    setFilteredSlots(slots.slice(0, PAGE_SIZE));
+    setFilteredSelectedSlots(selectedSlots.slice(0, PAGE_SIZE));
+  }, [inputs]);
 
-  const handlePagination = (_: React.ChangeEvent<unknown>, page: number) => {
+  const handlePagination = (_: any, page: number) => {
     setPage(page);
     setFilteredInputs(inputs.slice(PAGE_SIZE * (page - 1), PAGE_SIZE * page));
     setFilteredLabels(labels.slice(PAGE_SIZE * (page - 1), PAGE_SIZE * page));
