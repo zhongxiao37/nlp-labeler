@@ -1,12 +1,26 @@
-import { Button, Input, Snackbar, SnackbarCloseReason, Typography } from "@mui/material";
+import { Input, Snackbar, Typography } from "@mui/material";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchIcon from '@mui/icons-material/Search';
 import React from "react";
+import { PAGE_SIZE } from "./NspFileCard";
 
 interface INspFileCardLineProps {
   inputs: string[];
   labels: string[];
   slots: string[];
+  selectedSlots: string[];
+  page: number;
+}
+
+interface INspFileCardInputOutputProps {
+  input: string;
+  idx: number;
+  label: string;
+  output: string;
+  outputSelected: string;
+  onCopyWords: (idx: number) => void;
+  onCopySlots: (slotIdx: number) => void;
+  onCopySelectedSlots: (slotIdx: number) => void;
 }
 
 const handleMouseOver = (event: React.MouseEvent<HTMLElement>) => {
@@ -14,11 +28,13 @@ const handleMouseOver = (event: React.MouseEvent<HTMLElement>) => {
   if (element) {
     const id: string = element.id;
     if (id.startsWith('label')) {
-      const labelId = id.replace('label', 'slot');
-      document.getElementById(labelId)?.parentElement?.classList.add('bg-[#1976d2]', '!text-white');
-    } else if (id.startsWith('slot')) {
-      const slotId = id.replace('slot', 'label');
+      const slotId = id.replace('label', 'slot');
+      const slotSelectedId = id.replace('label', 'slot-selected');
       document.getElementById(slotId)?.parentElement?.classList.add('bg-[#1976d2]', '!text-white');
+      document.getElementById(slotSelectedId)?.parentElement?.classList.add('bg-[#1976d2]', '!text-white');
+    } else if (id.startsWith('slot')) {
+      const labelId = id.replace('slot-selected', 'label').replace('slot', 'label');
+      document.getElementById(labelId)?.parentElement?.classList.add('bg-[#1976d2]', '!text-white');
     };;
   }
 };
@@ -28,11 +44,13 @@ const handleMouseLeave = (event: React.MouseEvent<HTMLElement>) => {
   if (element) {
     const id: string = element.id;
     if (id.startsWith('label')) {
-      const labelId = id.replace('label', 'slot');
-      document.getElementById(labelId)?.parentElement?.classList.remove('bg-[#1976d2]', '!text-white');
-    } else if (id.startsWith('slot')) {
-      const slotId = id.replace('slot', 'label');
+      const slotId = id.replace('label', 'slot');
+      const slotSelectedId = id.replace('label', 'slot-selected');
       document.getElementById(slotId)?.parentElement?.classList.remove('bg-[#1976d2]', '!text-white');
+      document.getElementById(slotSelectedId)?.parentElement?.classList.remove('bg-[#1976d2]', '!text-white');
+    } else if (id.startsWith('slot')) {
+      const labelId = id.replace('slot-selected', 'label').replace('slot', 'label');
+      document.getElementById(labelId)?.parentElement?.classList.remove('bg-[#1976d2]', '!text-white');
     };;
   }
 
@@ -62,13 +80,21 @@ const handlePredictSlots = async (idx: number) => {
 
 
 
-const NspFileCardInputOutput: React.FC<{ input: string, idx: number; label: string; output: string; onCopyWords: (idx: number) => void; onCopySlots: (slotIdx: number) => void; }> = ({ input, idx, label, output, onCopySlots, onCopyWords }) => {
+const NspFileCardInputOutput: React.FC<INspFileCardInputOutputProps> = ({ input, idx, label, output, outputSelected, onCopySlots, onCopyWords, onCopySelectedSlots }) => {
   const words = input.split(/\s/);
   let slots: string[];
   if (output) {
     slots = output.split(/\s/);
   } else {
     slots = words.map(() => 'O');
+  }
+
+  let selectedSlots: string[];
+
+  if (outputSelected) {
+    selectedSlots = outputSelected.split(/\s/);
+  } else {
+    selectedSlots = words.map(() => 'O');
   }
 
   const labelColor = label === '1' ? 'hover:bg-blue-200 bg-blue-300' : 'hover:bg-gray-200';
@@ -87,13 +113,21 @@ const NspFileCardInputOutput: React.FC<{ input: string, idx: number; label: stri
         {slots.map((s, sidx) => <Input key={`slot-${idx}-${sidx}`} id={`slot-${idx}-${sidx}`} defaultValue={s} className="hover:bg-[#1976d2] hover:text-white" onMouseOver={handleMouseOver} onMouseLeave={handleMouseLeave} />)}
         <ContentCopyIcon className="m-2 cursor-pointer" onClick={() => onCopySlots(idx)} />
       </div>
+
+      <div id={`slot-selected-${idx}`}>
+        {selectedSlots.map((s, sidx) => <Input key={`slot-selected-${idx}-${sidx}`} id={`slot-selected-${idx}-${sidx}`} defaultValue={s} className="hover:bg-[#1976d2] hover:text-white" onMouseOver={handleMouseOver} onMouseLeave={handleMouseLeave} />)}
+        <ContentCopyIcon className="m-2 cursor-pointer" onClick={() => onCopySelectedSlots(idx)} />
+      </div>
     </div>
   );
 };
 
-export const NspFileCardLine: React.FC<INspFileCardLineProps> = ({ inputs, labels, slots }) => {
+export const NspFileCardLine: React.FC<INspFileCardLineProps> = ({ inputs, labels, slots, selectedSlots, page }) => {
   const [saving, setSaving] = React.useState<boolean>(false);
   const [message, setMessage] = React.useState<string>("");
+
+  console.log('labels', labels);
+  console.log('slots', slots);
 
   const copyWords = async (inputIdx: number) => {
     setMessage("Copying");
@@ -112,64 +146,40 @@ export const NspFileCardLine: React.FC<INspFileCardLineProps> = ({ inputs, label
     setSaving(true);
 
     const slotId = `slot-${slotIdx}`;
-    const slots = Array.from(document.getElementById(slotId)?.querySelectorAll('input') || []).map((s) => s.value).join(' ');
-    await navigator.clipboard.writeText(slots);
+    const s = Array.from(document.getElementById(slotId)?.querySelectorAll('input') || []).map((s) => s.value).join(' ');
+    await navigator.clipboard.writeText(s);
 
     setMessage("Copied");
     setTimeout(() => setSaving(false), 1000);
   };
 
-  const copyAllSlots = async () => {
+  const copySelectedSlots = async (slotIdx: number) => {
     setMessage("Copying");
     setSaving(true);
 
-    const inputsLength = inputs.length;
-    let slotsList: string[] = [];
-
-    for (let i of [...Array(inputsLength).keys()]) {
-      const slotId = `slot-${i}`;
-      const slots = Array.from(document.getElementById(slotId)?.querySelectorAll('input') || []).map((s) => s.value).join(' ');
-      slotsList.push(slots);
-    }
-
-    await navigator.clipboard.writeText(slotsList.join("\n"));
+    const slotId = `slot-selected-${slotIdx}`;
+    console.log(slotId);
+    const ss = Array.from(document.getElementById(slotId)?.querySelectorAll('input') || []).map((s) => s.value).join(' ');
+    await navigator.clipboard.writeText(ss);
 
     setMessage("Copied");
     setTimeout(() => setSaving(false), 1000);
   };
-
-  const handleClose = (
-    _: React.SyntheticEvent | Event,
-    reason?: SnackbarCloseReason,
-  ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
-    setSaving(false);
-  };
-
-
 
   return (
     <>
       {
-        inputs.map((l, idx) => {
-
-          return <NspFileCardInputOutput key={idx} input={l} idx={idx} label={labels[idx]} output={slots[idx]} onCopySlots={copySlots} onCopyWords={copyWords} />;
+        inputs.map((l, i) => {
+          const idx = i + (page - 1) * PAGE_SIZE;
+          return <NspFileCardInputOutput key={idx} input={l} idx={idx} label={labels[i]} output={slots[i]} outputSelected={selectedSlots[i]} onCopySlots={copySlots} onCopySelectedSlots={copySelectedSlots} onCopyWords={copyWords} />;
         }
         )
-      }
-
-      {
-        inputs?.length > 0 && <Button component="div" variant="contained" tabIndex={-1} onClick={copyAllSlots}>Copy All</Button>
       }
 
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={saving}
         autoHideDuration={6000}
-        onClose={handleClose}
         message={message}
       />
     </>
