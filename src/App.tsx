@@ -1,7 +1,9 @@
 import './App.css';
 import { AppSelector } from './AppSelector';
 import IntentApp from './IntentApp';
+
 import React from 'react';
+import NspApp from './NspApp';
 
 const App = () => {
 
@@ -24,6 +26,7 @@ const App = () => {
     <div className='mx-auto text-center h-full overflow-scroll'>
       <AppSelector selected={app} onAppSelect={handleAppClick} />
       {(app === "intent") && <IntentApp />}
+      {(app === "nsp") && <NspApp />}
     </div>
   );
 
